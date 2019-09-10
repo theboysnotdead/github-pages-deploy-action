@@ -25,6 +25,15 @@ case "$FOLDER" in /*|./*)
   exit 1
 esac
 
+# Installs Git.
+apt-get update && \
+apt-get install -y git && \
+apt-get install -y jq && \
+
+# Gets the commit email/name if it exists in the push event payload.
+COMMIT_EMAIL=`jq '.pusher.email' ${GITHUB_EVENT_PATH}`
+COMMIT_NAME=`jq '.pusher.name' ${GITHUB_EVENT_PATH}`
+
 if [ -z "$COMMIT_EMAIL" ]
 then
   COMMIT_EMAIL="${GITHUB_ACTOR}@users.noreply.github.com"
@@ -34,10 +43,6 @@ if [ -z "$COMMIT_NAME" ]
 then
   COMMIT_NAME="${GITHUB_ACTOR}"
 fi
-
-# Installs Git.
-apt-get update && \
-apt-get install -y git && \
 
 # Directs the action to the the Github workspace.
 cd $GITHUB_WORKSPACE && \
@@ -76,10 +81,14 @@ if [ "$CNAME" ]; then
   echo $CNAME > $FOLDER/CNAME
 fi
 
-# Commits the data to Github.
-echo "Deploying to GitHub..." && \
-git add -f $FOLDER && \
+# Commits the data to Github if there are deployable changes.
+if [ -z "$(git status --porcelain)" ]; then
+  echo "Nothing to deploy"
+else
+  echo "Deploying to GitHub..." && \
+  git add -f $FOLDER && \
 
-git commit -m "Deploying to ${BRANCH} - $(date +"%T")" && \
-git push $REPOSITORY_PATH `git subtree split --prefix $FOLDER ${BASE_BRANCH:-master}`:$BRANCH --force && \
-echo "Deployment succesful!"
+  git commit -m "Deploying to ${BRANCH} - $(date +"%T")" && \
+  git push $REPOSITORY_PATH `git subtree split --prefix $FOLDER ${BASE_BRANCH:-master}`:$BRANCH --force && \
+  echo "Deployment succesful!"
+fi
