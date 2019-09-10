@@ -81,8 +81,6 @@ if [ "$CNAME" ]; then
   echo $CNAME > $FOLDER/CNAME
 fi
 
-echo "$(git status)"
-
 # Commits the data to Github if there are deployable changes.
 if [ -z "$(git status --porcelain)" ]; then
   echo "There are no changes to deploy, aborting..."
@@ -91,6 +89,6 @@ else
   git add -f $FOLDER && \
 
   git commit -m "Deploying to ${BRANCH} - $(date +"%T")" && \
-  git push $REPOSITORY_PATH `git subtree split --prefix $FOLDER ${BASE_BRANCH:-master}`:$BRANCH --force && \
+  git push $REPOSITORY_PATH `git subtree --prefix $FOLDER ${BASE_BRANCH:-master}`:$BRANCH --force && \
   echo "Deployment succesful!"
 fi
