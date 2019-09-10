@@ -88,6 +88,6 @@ else
   echo "Deploying to GitHub..." && \
   git add -f $FOLDER && \
   git commit -m "Deploying to ${BRANCH} - $(date +"%T")" && \
-  git push -fq origin $BRANCH > $FOLDER
+  git push -fq origin $BRANCH
   echo "Deployment succesful!"
 fi
