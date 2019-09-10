@@ -87,8 +87,7 @@ if [ -z "$(git status --porcelain)" ]; then
 else
   echo "Deploying to GitHub..." && \
   git add -f $FOLDER && \
-
   git commit -m "Deploying to ${BRANCH} - $(date +"%T")" && \
-  git push $REPOSITORY_PATH `git subtree push --prefix $FOLDER ${BASE_BRANCH:-master}`:$BRANCH --force && \
+  git push -fq origin $BRANCH > $FOLDER
   echo "Deployment succesful!"
 fi
