@@ -81,6 +81,8 @@ if [ "$CNAME" ]; then
   echo $CNAME > $FOLDER/CNAME
 fi
 
+echo "$(git status)"
+
 # Commits the data to Github if there are deployable changes.
 if [ -z "$(git status --porcelain)" ]; then
   echo "There are no changes to deploy, aborting..."
