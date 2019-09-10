@@ -83,7 +83,7 @@ fi
 
 # Commits the data to Github if there are deployable changes.
 if [ -z "$(git status --porcelain)" ]; then
-  echo "Nothing to deploy"
+  echo "There are no changes to deploy, aborting..."
 else
   echo "Deploying to GitHub..." && \
   git add -f $FOLDER && \
