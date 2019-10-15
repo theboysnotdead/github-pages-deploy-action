@@ -58,16 +58,18 @@ async function createBranch() {
 
 async function deploy(action) {
   const repositoryPath = `https://${action.accessToken || `x-access-token:${action.githubToken}`}@github.com/${process.env.GITHUB_REPOSITORY}.git`
-  const gitStatus = await exec(`git status --porcelain`);
-
-  await exec(`cd ${action.folder}`)
+  const gitStatus = await exec(`git status --porcelain`, [], {
+    cwd: action.folder
+  });
 
   if (gitStatus) {
     console.log('There is currently nothing to deploy, aborting...')
     return;
   }
 
-  await exec(`git add .`)
+  await exec(`git add .`, [], {
+    cwd: action.folder
+  })
   await exec(`git commit -m "Deploying to GitHub Pages"`)
   await exec(`git push --force ${repositoryPath} ${action.baseBranch ? action.baseBranch : 'master'}:${action.branch}`)
 
