@@ -19,6 +19,11 @@
   ],
   "author": "YourNameOrOrganization",
   "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.0.0",
+    "@actions/exec": "^1.0.1",
+    "@actions/github": "^1.1.0"
+  },
   "devDependencies": {
     "@actions/core": "^1.0.0",
     "@actions/exec": "^1.0.1",
