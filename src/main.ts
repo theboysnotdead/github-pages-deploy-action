@@ -61,7 +61,7 @@ async function deploy(action) {
   const repositoryPath = `https://${action.accessToken || `x-access-token:${action.gitHubToken}`}@github.com/${action.gitHubRepository}.git`
   const status = await execute(`git status --porcelain`);
 
-  await execute(`rm-rf !(${action.folder}) && cp -r  ${action.folder}/.  ./ && rm -r ${action.folder}`)
+  await execute(`rm -rf !(${action.folder}) && cp -r  ${action.folder}/.  ./ && rm -r ${action.folder}`)
   await execute(`git add .`)
   await execute(`git commit -m "Deploying to GitHub Pages"`)
   await execute(`git push --force ${repositoryPath} ${action.baseBranch || 'master'}:${action.branch}`)
