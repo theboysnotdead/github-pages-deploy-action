@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import {exec} from '@actions/exec';
+import {exec} from 'child_process';
 
 async function init() {
   const {pusher, repository} = github.context.payload;
@@ -23,6 +23,7 @@ async function init() {
   }
 
 
+  await exec(`cd ${folder}`)
   await exec('git init')
   await exec(`git config user.name ${pusher.name}`)
   await exec(`git config user.email ${pusher.email}`)
@@ -45,24 +46,16 @@ async function createBranch() {
 
 async function deploy(action) {
   const repositoryPath = `https://${action.accessToken || `x-access-token:${action.githubToken}`}@github.com/${action.githubRepository}.git`
-  const gitStatus = await exec(`git status --porcelain`, [], {
-    cwd: action.folder
-  });
+  const gitStatus = await exec(`git status --porcelain`);
 
   if (gitStatus) {
     console.log('There is currently nothing to deploy, aborting...')
     return;
   }
 
-  await exec(`git add .`, [], {
-    cwd: action.folder
-  })
-  await exec(`git commit -m "Deploying to GitHub Pages"`, [], {
-    cwd: action.folder
-  })
-  await exec(`git push --force ${repositoryPath} ${action.baseBranch ? action.baseBranch : 'master'}:${action.branch}`, [], {
-    cwd: action.folder
-  })
+  await exec(`git add .`)
+  await exec(`git commit -m "Deploying to GitHub Pages"`)
+  await exec(`git push --force ${repositoryPath} ${action.baseBranch ? action.baseBranch : 'master'}:${action.branch}`)
 
   //await exec(`git checkout ${action.baseBranch || 'master'}`)
   //await exec(`git add -f ${action.folder}`)
