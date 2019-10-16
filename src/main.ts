@@ -35,7 +35,7 @@ async function init() {
     cname: core.getInput('CNAME'),
     accessToken: core.getInput('ACCESS_TOKEN'),
     branch: core.getInput('BRANCH'),
-    baseBranch: core.getInput('BASE_BRANCH');
+    baseBranch: core.getInput('BASE_BRANCH'),
     folder,
   };
 }
