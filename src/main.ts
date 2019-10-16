@@ -48,13 +48,6 @@ async function deploy(action) {
   const repositoryPath = `https://${action.accessToken || `x-access-token:${action.githubToken}`}@github.com/${action.githubRepository}.git`
   const status = await exec(`git status --porcelain`);
 
-  console.log('This is git status', status)
-
-  if (!status) {
-    console.log('There is currently nothing to deploy, aborting...')
-    return;
-  }
-
   await exec(`git add .`)
   await exec(`git commit -m "Deploying to GitHub Pages"`)
   await exec(`git push --force ${repositoryPath} ${action.baseBranch ? action.baseBranch : 'master'}:${action.branch}`)
