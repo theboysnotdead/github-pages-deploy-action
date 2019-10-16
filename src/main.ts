@@ -37,10 +37,10 @@ async function init() {
   }
 
 
-  await execute(`cd ${folder}`)
   await execute(`git init`)
   await execute(`git config user.name ${pusher.name}`)
   await execute(`git config user.email ${pusher.email}`)
+  await execute(`cd ${folder}`)
 
   const gitHubRepository = repository ? repository.full_name : '';
 
