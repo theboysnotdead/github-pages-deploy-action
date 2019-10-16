@@ -13,12 +13,14 @@ export async function execute(cmd: string):Promise<String> {
 
 async function init() {
   const {pusher, repository} = github.context.payload;
+
   const gitHubRepository = repository ? repository.full_name : '';
   const accessToken = core.getInput('ACCESS_TOKEN');
   const gitHubToken = core.getInput('GITHUB_TOKEN');
   const baseBranch = core.getInput('BASE_BRANCH');
   const branch = core.getInput('BRANCH');
   const folder = core.getInput('FOLDER');
+  const cname = core.getInput('CNAME')
 
   if (!accessToken && !gitHubToken) {
     core.setFailed('You must provide the action with either a Personal Access Token or the GitHub Token secret in order to deploy.')
@@ -41,6 +43,7 @@ async function init() {
   return Promise.resolve({
     gitHubToken,
     gitHubRepository,
+    cname,
     accessToken,
     branch,
     baseBranch,
@@ -55,6 +58,13 @@ async function deploy(action) {
   await execute(`git add -f ${action.folder}`)
   await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch || 'master'} ${process.env.GITHUB_SHA}"`)
   await execute(`git push ${repositoryPath} \`git subtree split --prefix ${action.folder} ${action.baseBranch || 'master'}\`:${action.branch} --force`)
+
+  if (action.cname) {
+    console.log(`Generating a CNAME file in the ${action.folder} directory...`)
+    await execute (`${action.cname} > ${action.folder}/CNAME`)
+  }
+
+  console.log('Deployment Successful!')
 }
 
 
