@@ -55,7 +55,7 @@ async function deploy(action) {
 
   // Checks to see if the deployment branch exists, if not it needs to be created.
   const branchExists = await execute(`git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`)
-
+  console.log('does the branch exist?', branchExists)
   if (!branchExists) {
     console.log('Deploying new branch')
   }

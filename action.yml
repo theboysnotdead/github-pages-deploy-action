@@ -1,10 +1,32 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
-inputs:
-  myInput:              # change this
-    description: 'input description here'
-    default: 'default value if applicable'
+
+name: 'Deploy to GitHub Pages'
+description: 'This action will handle the building and deploying process of your project to GitHub Pages.'
+author: 'James Ives <iam@jamesiv.es>'
 runs:
   using: 'node12'
   main: 'lib/main.js'
+inputs:
+  ACCESS_TOKEN:              # change this
+    description: 'input description here'
+    default: 'default value if applicable'
+
+  GITHUB_TOKEN:
+    description: 'In order for GitHub to trigger the rebuild of your page you must provide the action with the repositories provided GitHub token.'
+
+  BASE_BRANCH:
+    description: 'The base branch of your repository which you'd like to checkout prior to deploying.'
+    default: 'master'
+
+  BRANCH:
+    description: 'This is the branch you wish to deploy to, for example "gh-pages" or "docs".'
+    default: 'gh-pages'
+
+  FOLDER:
+    description: 'The folder in your repository that you want to deploy. If your build script compiles into a directory named "build" you'd put it here. Folder paths cannot have a leading "/" or "./".'
+
+  CNAME:
+    description: 'If you are using a custom domain, you will need to add the domain name to the CNAME input. If you do not do this GitHub will wipe your domain configuration after each deployment. This field should look something like this: "jives.dev".'
+
+branding:
+  icon: 'git-commit'
+  color: 'orange'
