@@ -43,9 +43,6 @@ async function init() {
 
   const gitHubRepository = repository ? repository.full_name : '';
 
-  console.log('Git has been initialized.')
-  await execute(`ls`)
-
   // Returns for testing purposes.
   return Promise.resolve({
     gitHubToken,
@@ -59,17 +56,10 @@ async function init() {
 
 async function deploy(action) {
   const repositoryPath = `https://${action.accessToken || `x-access-token:${action.gitHubToken}`}@github.com/${action.gitHubRepository}.git`
-  const status = await execute(`git status --porcelain`);
-
-  await execute(`rm -rf !(${action.folder}) && cp -r  ${action.folder}/.  ./ && rm -r ${action.folder}`)
-  await execute(`git add .`)
-  await execute(`git commit -m "Deploying to GitHub Pages"`)
-  await execute(`git push --force ${repositoryPath} ${action.baseBranch || 'master'}:${action.branch}`)
-
-  //await execute(`git checkout ${action.baseBranch || 'master'}`)
-  //await execute(`git add -f ${action.folder}`)
-  //await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch || 'master'} ${process.env.GITHUB_SHA}"`)
-  //await execute(`git push $REPOSITORY_PATH 'git subtree split --prefix ${action.folder} ${action.baseBranch || 'master'}':${action.baseBranch} --force`)
+  await execute(`git checkout ${action.baseBranch || 'master'}`)
+  await execute(`git add -f ${action.folder}`)
+  await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch || 'master'} ${process.env.GITHUB_SHA}"`)
+  await execute(`git push ${repositoryPath} 'git subtree split --prefix ${action.folder} ${action.baseBranch || 'master'}':${action.baseBranch} --force`)
 }
 
 
