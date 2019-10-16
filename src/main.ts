@@ -59,7 +59,7 @@ async function deploy(action) {
   await execute(`git checkout ${action.baseBranch || 'master'}`)
   await execute(`git add -f ${action.folder}`)
   await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch || 'master'} ${process.env.GITHUB_SHA}"`)
-  await execute(`git push ${repositoryPath} 'git subtree split --prefix ${action.folder} ${action.baseBranch || 'master'}':${action.baseBranch} --force`)
+  await execute(`git push ${repositoryPath} 'git subtree split --prefix ${action.folder} ${action.baseBranch || 'master'}':${action.branch} --force`)
 }
 
 
