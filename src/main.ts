@@ -1,5 +1,5 @@
-import * as core from '@actions/core';
-import {init, deploy} from './git';
+import * as core from "@actions/core";
+import { init, deploy } from "./git";
 
 async function run() {
   try {
@@ -9,7 +9,7 @@ async function run() {
   } catch (error) {
     core.setFailed(error.message);
   } finally {
-    console.log('Deployment Successful')
+    console.log("Deployment Successful");
   }
 }
 
