@@ -42,13 +42,13 @@ async function init() {
   await execute(`git config user.name ${pusher.name}`)
   await execute(`git config user.email ${pusher.email}`)
 
-  const gitHubRepository = repository ? repository.name : '';
+  const gitHubRepository = repository ? repository.full_name : '';
 
   // Returns for testing purposes.
   return Promise.resolve({
+    gitHubToken,
     gitHubRepository,
     accessToken,
-    gitHubToken,
     branch,
     baseBranch,
     folder,
@@ -59,13 +59,12 @@ async function createBranch() {
 }
 
 async function deploy(action) {
-  console.log(action.gitHubRepository)
   const repositoryPath = `https://${action.accessToken || `x-access-token:${action.gitHubToken}`}@github.com/${action.gitHubRepository}.git`
   const status = await execute(`git status --porcelain`);
 
   await execute(`git add .`)
   await execute(`git commit -m "Deploying to GitHub Pages"`)
-  await execute(`git push --force ${repositoryPath} master:gh-pages`)
+  await execute(`git push --force ${repositoryPath} ${action.baseBranch || 'master'}:${action.branch}`)
 
   //await execute(`git checkout ${action.baseBranch || 'master'}`)
   //await execute(`git add -f ${action.folder}`)
