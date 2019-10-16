@@ -44,7 +44,7 @@ async function createBranch() {
 }
 
 async function deploy(action) {
-  const repositoryPath = `https://${action.accessToken || `x-access-token:${action.githubToken}`}@github.com/${process.env.GITHUB_REPOSITORY}.git`
+  const repositoryPath = `https://${action.accessToken || `x-access-token:${action.githubToken}`}@github.com/${action.githubRepository}.git`
   const gitStatus = await exec(`git status --porcelain`, [], {
     cwd: action.folder
   });
