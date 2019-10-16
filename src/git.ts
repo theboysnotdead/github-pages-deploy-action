@@ -38,7 +38,21 @@ export async function init() {
   };
 }
 
-export async function generateBranch() {}
+export async function generateBranch(action, repositoryPath) {
+  try {
+    await execute(`git checkout ${action.baseBranch || "master"}`);
+    await execute(`git checkout --orphan ${action.branch}`)
+    await execute(`git rm -rf .`)
+    await execute(`touch README.md`)
+    await execute(`git add README.md`)
+    await execute(`git commit -m "Initial ${action.branch} commit"`)
+    await execute(`git push ${repositoryPath} ${action.branch}`)
+  } catch(error) {
+    core.setFailed(`There was an error creating the deployment branch.`)
+  } finally {
+    console.log('Deployment branch succesfully created!')
+  }
+}
 
 export async function deploy(action: {
   gitHubRepository: any;
@@ -49,6 +63,13 @@ export async function deploy(action: {
   baseBranch: any;
   folder: any;
 }) {
+  try {
+
+  } catch(error) {
+
+  } finally {
+    
+  }
   const repositoryPath = `https://${action.accessToken ||
     `x-access-token:${action.gitHubToken}`}@github.com/${
     action.gitHubRepository
@@ -67,7 +88,7 @@ export async function deploy(action: {
   ));
 
   if (!branchExists) {
-    console.log("Deploying new branch");
+    await generateBranch(action, repositoryPath)
   }
 
   await execute(`git add -f ${action.folder}`);
