@@ -41,16 +41,16 @@ export async function init() {
 export async function generateBranch(action, repositoryPath) {
   try {
     await execute(`git checkout ${action.baseBranch || "master"}`);
-    await execute(`git checkout --orphan ${action.branch}`)
-    await execute(`git rm -rf .`)
-    await execute(`touch README.md`)
-    await execute(`git add README.md`)
-    await execute(`git commit -m "Initial ${action.branch} commit"`)
-    await execute(`git push ${repositoryPath} ${action.branch}`)
-  } catch(error) {
-    core.setFailed(`There was an error creating the deployment branch.`)
+    await execute(`git checkout --orphan ${action.branch}`);
+    await execute(`git rm -rf .`);
+    await execute(`touch README.md`);
+    await execute(`git add README.md`);
+    await execute(`git commit -m "Initial ${action.branch} commit"`);
+    await execute(`git push ${repositoryPath} ${action.branch}`);
+  } catch (error) {
+    core.setFailed(`There was an error creating the deployment branch.`);
   } finally {
-    console.log('Deployment branch succesfully created!')
+    console.log("Deployment branch succesfully created!");
   }
 }
 
@@ -64,11 +64,8 @@ export async function deploy(action: {
   folder: any;
 }) {
   try {
-
-  } catch(error) {
-
+  } catch (error) {
   } finally {
-    
   }
   const repositoryPath = `https://${action.accessToken ||
     `x-access-token:${action.gitHubToken}`}@github.com/${
@@ -83,12 +80,12 @@ export async function deploy(action: {
   }
 
   // TODO: Checks to see if the deployment branch exists, if not it needs to be created.
-  const branchExists = await Number(execute(
-    `git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`
-  ));
+  const branchExists = await Number(
+    execute(`git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`)
+  );
 
   if (!branchExists) {
-    await generateBranch(action, repositoryPath)
+    await generateBranch(action, repositoryPath);
   }
 
   await execute(`git add -f ${action.folder}`);
