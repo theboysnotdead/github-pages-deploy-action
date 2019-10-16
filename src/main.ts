@@ -36,7 +36,7 @@ async function init() {
     core.setFailed('You must provide the action with the folder name in the repository where your compiled page lives.')
   }
 
-
+  await execute(`cd ${process.env.GITHUB_WORKSPACE}`)
   await execute(`git init`)
   await execute(`git config user.name ${pusher.name}`)
   await execute(`git config user.email ${pusher.email}`)
