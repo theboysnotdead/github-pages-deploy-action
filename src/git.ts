@@ -43,7 +43,7 @@ export async function generateBranch(action, repositoryPath) {
     await execute(`git checkout ${action.baseBranch || "master"}`);
     await execute(`git checkout --orphan ${action.branch}`);
     await execute(`git reset --hard`)
-    await execute(`git commit --allow-empty -m "Initial ${action.branch} creation"`)
+    await execute(`git commit --allow-empty -m "Initial ${action.branch} branch creation"`)
     await execute(`git push ${repositoryPath} ${action.branch}`)
   } catch (error) {
     core.setFailed(`There was an error creating the deployment branch.`);
@@ -61,6 +61,9 @@ export async function deploy(action: {
   baseBranch: any;
   folder: any;
 }) {
+  const temporaryDeploymentDirectory = 'tmp-deployment-folder';
+  const temporaryDeploymentBranch = 'tmp-deployment-branch';
+
   const repositoryPath = `https://${action.accessToken ||
     `x-access-token:${action.gitHubToken}`}@github.com/${
     action.gitHubRepository
@@ -82,14 +85,18 @@ export async function deploy(action: {
   }
 
   await execute(`git fetch origin`)
-  await execute(`rm -rf tmp-deployment-folder`)
-  await execute(`git worktree add --checkout tmp-deployment-folder origin/${action.branch}`)
-  await execute(`cp -rf ${action.folder}/* tmp-deployment-folder`)
-  await execute(`cd tmp-deployment-folder`)
-  await execute(`git add --all .`)
-  await execute(`git checkout -b new-deploy-changes`)
-  await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch || 'master'} ${process.env.GITHUB_SHA}"`)
-  await execute(`git push ${repositoryPath} new-deploy-changes:${action.branch}`)
+  console.log('Preparing for deployment....')
+  await execute(`rm -rf ${temporaryDeploymentDirectory}`)
+  await execute(`git worktree add --checkout ${temporaryDeploymentDirectory} origin/${action.branch}`)
+  await execute(`cp -rf ${action.folder}/* ${temporaryDeploymentDirectory}`)
+  await execute(`cd ${temporaryDeploymentDirectory}`)
 
-  console.log('finshed deploying and stuff')
+  console.log('Preparing Git Commit...')
+  await execute(`git add --all .`)
+  await execute(`git checkout -b ${temporaryDeploymentBranch}`)
+  await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch || 'master'} ${process.env.GITHUB_SHA}"`)
+  
+  console.log('Executing push to GitHub')
+  await execute(`git push ${repositoryPath} ${temporaryDeploymentBranch}:${action.branch}`)
+
 }
