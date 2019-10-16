@@ -2,6 +2,20 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import {exec} from 'child_process';
 
+
+export function execute(command: string):Promise<String> {
+	return new Promise((resolve, reject) => {
+		exec(command, (error, stdout, stderr) => {
+			if (error) {
+				reject(error);
+				return;
+			}
+
+			resolve(stdout.trim());
+		});
+	});
+};
+
 async function init() {
   const {pusher, repository} = github.context.payload;
   const accessToken = core.getInput('ACCESS_TOKEN');
@@ -23,10 +37,10 @@ async function init() {
   }
 
 
-  await exec(`cd ${folder}`)
-  await exec('git init')
-  await exec(`git config user.name ${pusher.name}`)
-  await exec(`git config user.email ${pusher.email}`)
+  await execute(`cd ${folder}`)
+  await execute('git init')
+  await execute(`git config user.name ${pusher.name}`)
+  await execute(`git config user.email ${pusher.email}`)
 
   const githubRepository = repository ? repository.name : '';
 
@@ -46,16 +60,16 @@ async function createBranch() {
 
 async function deploy(action) {
   const repositoryPath = `https://${action.accessToken || `x-access-token:${action.githubToken}`}@github.com/${action.githubRepository}.git`
-  const status = await exec(`git status --porcelain`);
+  const status = await execute(`git status --porcelain`);
 
-  await exec(`git add .`)
-  await exec(`git commit -m "Deploying to GitHub Pages"`)
-  await exec(`git push --force ${repositoryPath} ${action.baseBranch ? action.baseBranch : 'master'}:${action.branch}`)
+  await execute(`git add .`)
+  await execute(`git commit -m "Deploying to GitHub Pages"`)
+  await execute(`git push --force ${repositoryPath} ${action.baseBranch ? action.baseBranch : 'master'}:${action.branch}`)
 
-  //await exec(`git checkout ${action.baseBranch || 'master'}`)
-  //await exec(`git add -f ${action.folder}`)
-  //await exec(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch || 'master'} ${process.env.GITHUB_SHA}"`)
-  //await exec(`git push $REPOSITORY_PATH 'git subtree split --prefix ${action.folder} ${action.baseBranch || 'master'}':${action.baseBranch} --force`)
+  //await execute(`git checkout ${action.baseBranch || 'master'}`)
+  //await execute(`git add -f ${action.folder}`)
+  //await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch || 'master'} ${process.env.GITHUB_SHA}"`)
+  //await execute(`git push $REPOSITORY_PATH 'git subtree split --prefix ${action.folder} ${action.baseBranch || 'master'}':${action.baseBranch} --force`)
 }
 
 
