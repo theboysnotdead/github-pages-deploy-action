@@ -55,14 +55,16 @@ async function deploy(action) {
   const repositoryPath = `https://${action.accessToken || `x-access-token:${action.gitHubToken}`}@github.com/${action.gitHubRepository}.git`
   
   await execute(`git checkout ${action.baseBranch || 'master'}`)
-  await execute(`git add -f ${action.folder}`)
-  await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch || 'master'} ${process.env.GITHUB_SHA}"`)
-  await execute(`git push ${repositoryPath} \`git subtree split --prefix ${action.folder} ${action.baseBranch || 'master'}\`:${action.branch} --force`)
 
   if (action.cname) {
     console.log(`Generating a CNAME file in the ${action.folder} directory...`)
     await execute (`${action.cname} > ${action.folder}/CNAME`)
   }
+
+  await execute(`git add -f ${action.folder}`)
+  await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch || 'master'} ${process.env.GITHUB_SHA}"`)
+  await execute(`git push ${repositoryPath} \`git subtree split --prefix ${action.folder} ${action.baseBranch || 'master'}\`:${action.branch} --force`)
+
 
   console.log('Deployment Successful!')
 }
