@@ -42,15 +42,13 @@ export async function generateBranch(action, repositoryPath) {
   try {
     await execute(`git checkout ${action.baseBranch || "master"}`);
     await execute(`git checkout --orphan ${action.branch}`);
-    await execute(`git rm -rf .`);
-    await execute(`touch README.md`);
-    await execute(`git add README.md`);
-    await execute(`git commit -m "Initial ${action.branch} commit"`);
-    await execute(`git push ${repositoryPath} ${action.branch}`);
+    await execute(`git reset --hard`)
+    await execute(`git commit --allow-empty -m "Initial ${action.branch} creation"`)
+    await execute(`git push ${repositoryPath} ${action.branch}`)
   } catch (error) {
     core.setFailed(`There was an error creating the deployment branch.`);
   } finally {
-    console.log("Deployment branch succesfully created!");
+    console.log("Deployment branch successfully created!");
   }
 }
 
@@ -63,23 +61,16 @@ export async function deploy(action: {
   baseBranch: any;
   folder: any;
 }) {
-  try {
-  } catch (error) {
-  } finally {
-  }
   const repositoryPath = `https://${action.accessToken ||
     `x-access-token:${action.gitHubToken}`}@github.com/${
     action.gitHubRepository
   }.git`;
-
-  await execute(`git checkout ${action.baseBranch || "master"}`);
 
   if (action.cname) {
     console.log(`Generating a CNAME file in the ${action.folder} directory...`);
     await execute(`echo ${action.cname} > ${action.folder}/CNAME`);
   }
 
-  // TODO: Checks to see if the deployment branch exists, if not it needs to be created.
   const branchExists = await Number(
     execute(`git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`)
   );
@@ -88,14 +79,13 @@ export async function deploy(action: {
     await generateBranch(action, repositoryPath);
   }
 
-  await execute(`git add -f ${action.folder}`);
-  await execute(
-    `git commit -m "Deploying to ${action.branch} from ${action.baseBranch ||
-      "master"} ${process.env.GITHUB_SHA}"`
-  );
-  await execute(
-    `git push ${repositoryPath} \`git subtree split --prefix ${
-      action.folder
-    } ${action.baseBranch || "master"}\`:${action.branch} --force`
-  );
+  await execute(`git fetch origin`)
+  await execute(`rm -rf tmp-deployment-folder`)
+  await execute(`git worktree add --checkout tmp-deployment-folder origin/${action.branch}`)
+  await execute(`cp -rf ${action.folder}/* temp-deployment-folder`)
+  await execute(`cd tmp-deployment-folder`)
+  await execute(`git add --all .`)
+  await execute(`git checkout -b deploy-changes`)
+  await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch || 'master'} ${process.env.GITHUB_SHA}"`)
+  await execute(`git push ${repositoryPath} deploy-changes:${action.branch}`)
 }
