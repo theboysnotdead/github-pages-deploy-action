@@ -19,12 +19,12 @@ export function execute(command: string):Promise<String> {
 async function init() {
   const {pusher, repository} = github.context.payload;
   const accessToken = core.getInput('ACCESS_TOKEN');
-  const githubToken = core.getInput('GITHUB_TOKEN');
+  const gitHubToken = core.getInput('GITHUB_TOKEN');
   const baseBranch = core.getInput('BASE_BRANCH');
   const branch = core.getInput('BRANCH');
   const folder = core.getInput('FOLDER');
 
-  if (!accessToken && !githubToken) {
+  if (!accessToken && !gitHubToken) {
     core.setFailed('You must provide the action with either a Personal Access Token or the GitHub Token secret in order to deploy.')
   }
 
@@ -42,13 +42,13 @@ async function init() {
   await execute(`git config user.name ${pusher.name}`)
   await execute(`git config user.email ${pusher.email}`)
 
-  const githubRepository = repository ? repository.name : '';
+  const gitHubRepository = repository ? repository.name : '';
 
   // Returns for testing purposes.
   return Promise.resolve({
-    githubRepository,
+    gitHubRepository,
     accessToken,
-    githubToken,
+    gitHubToken,
     branch,
     baseBranch,
     folder,
@@ -59,12 +59,13 @@ async function createBranch() {
 }
 
 async function deploy(action) {
-  const repositoryPath = `https://${action.accessToken || `x-access-token:${action.githubToken}`}@github.com/${action.githubRepository}.git`
+  console.log(action.gitHubRepository)
+  const repositoryPath = `https://${action.accessToken || `x-access-token:${action.gitHubToken}`}@github.com/${action.gitHubRepository}.git`
   const status = await execute(`git status --porcelain`);
 
   await execute(`git add .`)
   await execute(`git commit -m "Deploying to GitHub Pages"`)
-  await execute(`git push --force ${repositoryPath} ${action.baseBranch ? action.baseBranch : 'master'}:${action.branch}`)
+  await execute(`git push --force ${repositoryPath} master:gh-pages`)
 
   //await execute(`git checkout ${action.baseBranch || 'master'}`)
   //await execute(`git add -f ${action.folder}`)
