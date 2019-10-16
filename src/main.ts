@@ -22,17 +22,6 @@ async function init() {
     core.setFailed('You must provide the action with the folder name in the repository where your compiled page lives.')
   }
 
-  const gitHubEvent = require(`${process.env.GITHUB_EVENT_PATH}`);
-  let commitEmail = gitHubEvent.pusher.email || null;
-  let commitName = gitHubEvent.pusher.name || null;
-
-  if (!commitEmail) {
-    commitEmail = process.env.GITHUB_ACTOR || 'github-pages-deploy-action';
-  }
-
-  if (!commitName) {
-    commitName = process.env.GITHUB_ACTOR || 'Github Pages Deploy Action';
-  }
 
   await exec('git init')
   await exec(`git config user.name ${pusher.name}`)
@@ -43,8 +32,6 @@ async function init() {
   // Returns for testing purposes.
   return Promise.resolve({
     githubRepository,
-    commitName,
-    commitEmail,
     accessToken,
     githubToken,
     branch,
@@ -57,7 +44,7 @@ async function createBranch() {
 }
 
 async function deploy(action) {
-  const repositoryPath = `https://${action.accessToken || `x-access-token:${action.githubToken}`}@github.com/${process.env.GITHUB_REPOSITORY}.git`
+  const repositoryPath = `https://${action.accessToken || `x-access-token:${action.githubToken}`}@github.com/${action.githubRepository}.git`
   const gitStatus = await exec(`git status --porcelain`, [], {
     cwd: action.folder
   });
@@ -70,8 +57,12 @@ async function deploy(action) {
   await exec(`git add .`, [], {
     cwd: action.folder
   })
-  await exec(`git commit -m "Deploying to GitHub Pages"`)
-  await exec(`git push --force ${repositoryPath} ${action.baseBranch ? action.baseBranch : 'master'}:${action.branch}`)
+  await exec(`git commit -m "Deploying to GitHub Pages"`, [], {
+    cwd: action.folder
+  })
+  await exec(`git push --force ${repositoryPath} ${action.baseBranch ? action.baseBranch : 'master'}:${action.branch}`, [], {
+    cwd: action.folder
+  })
 
   //await exec(`git checkout ${action.baseBranch || 'master'}`)
   //await exec(`git add -f ${action.folder}`)
