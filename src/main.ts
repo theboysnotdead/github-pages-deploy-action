@@ -22,6 +22,9 @@ async function init() {
     core.setFailed('You must provide the action with either a Personal Access Token or the GitHub Token secret in order to deploy.')
   }
 
+  if (folder.startsWith('/') || folder.startsWith('./')) {
+    core.setFailed(`The deployment folder cannot be prefixed with '/' or './'. Instead reference the folder name directly.`)
+  }
 
   await execute(`cd ${process.env.GITHUB_WORKSPACE}`)
   await execute(`git init`)
@@ -30,8 +33,8 @@ async function init() {
 
   // Returns for testing purposes.
   return {
-    gitHubToken: core.getInput('GITHUB_TOKEN'),
     gitHubRepository: repository ? repository.full_name : '',
+    gitHubToken: core.getInput('GITHUB_TOKEN'),
     cname: core.getInput('CNAME'),
     accessToken: core.getInput('ACCESS_TOKEN'),
     branch: core.getInput('BRANCH'),
@@ -47,7 +50,14 @@ async function deploy(action) {
 
   if (action.cname) {
     console.log(`Generating a CNAME file in the ${action.folder} directory...`)
-    await execute (`echo ${action.cname} > ${action.folder}/CNAME`)
+    await execute(`echo ${action.cname} > ${action.folder}/CNAME`)
+  }
+
+  // Checks to see if the deployment branch exists, if not it needs to be created.
+  const branchExists = await execute(`git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`)
+
+  if (!branchExists) {
+    console.log('Deploying new branch')
   }
 
   await execute(`git add -f ${action.folder}`)
