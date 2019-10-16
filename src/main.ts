@@ -1,22 +1,17 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import {exec} from '@actions/exec';
+import {exec} from 'child_process';
 
 
-/** Executes on the command line.
- * @returns {Promise} - Returns a promise with the output once executed.
- */
-export async function execute(command: string): Promise<any> {
-	return await exec(command, [], {
-      cwd: process.env.GITHUB_WORKSPACE,
-    },
-  )
+export async function execute(cmd: string):Promise<String> {
+  return new Promise((resolve) => {
+    exec(cmd, (error, stdout) => {
+      resolve(stdout.trim());
+    });
+  })
 }
 
-/** Initializes the Git repository.
- * @returns {Promise} - Returns a promise with all of the repository information.
-*/
-async function init(): Promise<object> {
+async function init() {
   const {pusher, repository} = github.context.payload;
   const gitHubRepository = repository ? repository.full_name : '';
   const accessToken = core.getInput('ACCESS_TOKEN');
@@ -37,7 +32,7 @@ async function init(): Promise<object> {
     core.setFailed('You must provide the action with the folder name in the repository where your compiled page lives.')
   }
 
-  //await execute(`cd ${process.env.GITHUB_WORKSPACE}`)
+  await execute(`cd ${process.env.GITHUB_WORKSPACE}`)
   await execute(`git init`)
   await execute(`git config user.name ${pusher.name}`)
   await execute(`git config user.email ${pusher.email}`)
@@ -53,7 +48,6 @@ async function init(): Promise<object> {
   });
 }
 
-/** Hanles the action deployment. */
 async function deploy(action) {
   const repositoryPath = `https://${action.accessToken || `x-access-token:${action.gitHubToken}`}@github.com/${action.gitHubRepository}.git`
   
