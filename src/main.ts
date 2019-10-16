@@ -1,52 +1,45 @@
-import * as core from "@actions/core";
-import * as github from "@actions/github";
-import { exec } from "@actions/exec";
+import * as core from '@actions/core';
+import * as github from '@actions/github';
+import {exec} from '@actions/exec';
 
-export async function execute(command: string): Promise<String> {
-  let output = "";
 
-  await exec(command, [], {
-    listeners: {
-      stdout: (data: Buffer) => {
-        output += data.toString().trim();
-      }
-    }
-  });
-
-  return Promise.resolve(output);
+export async function execute(command: string) {
+	return exec(command, [], {
+      cwd: process.env.GITHUB_WORKSPACE,
+      listeners: {
+        stdout: (data: Buffer) => {
+          return Promise.resolve();
+        },
+      },
+    },
+  )
 }
 
 async function init() {
-  const { pusher, repository } = github.context.payload;
-  const gitHubRepository = repository ? repository.full_name : "";
-  const accessToken = core.getInput("ACCESS_TOKEN");
-  const gitHubToken = core.getInput("GITHUB_TOKEN");
-  const baseBranch = core.getInput("BASE_BRANCH");
-  const branch = core.getInput("BRANCH");
-  const folder = core.getInput("FOLDER");
+  const {pusher, repository} = github.context.payload;
+  const gitHubRepository = repository ? repository.full_name : '';
+  const accessToken = core.getInput('ACCESS_TOKEN');
+  const gitHubToken = core.getInput('GITHUB_TOKEN');
+  const baseBranch = core.getInput('BASE_BRANCH');
+  const branch = core.getInput('BRANCH');
+  const folder = core.getInput('FOLDER');
 
   if (!accessToken && !gitHubToken) {
-    core.setFailed(
-      "You must provide the action with either a Personal Access Token or the GitHub Token secret in order to deploy."
-    );
+    core.setFailed('You must provide the action with either a Personal Access Token or the GitHub Token secret in order to deploy.')
   }
 
   if (!branch) {
-    core.setFailed(
-      "You must provide the action with a branch name it should deploy to, for example gh-pages or docs."
-    );
+    core.setFailed('You must provide the action with a branch name it should deploy to, for example gh-pages or docs.')
   }
 
   if (!folder) {
-    core.setFailed(
-      "You must provide the action with the folder name in the repository where your compiled page lives."
-    );
+    core.setFailed('You must provide the action with the folder name in the repository where your compiled page lives.')
   }
 
-  await execute(`cd ${process.env.GITHUB_WORKSPACE}`);
-  await execute(`git init`);
-  await execute(`git config user.name ${pusher.name}`);
-  await execute(`git config user.email ${pusher.email}`);
+  //await execute(`cd ${process.env.GITHUB_WORKSPACE}`)
+  await execute(`git init`)
+  await execute(`git config user.name ${pusher.name}`)
+  await execute(`git config user.email ${pusher.email}`)
 
   // Returns for testing purposes.
   return Promise.resolve({
@@ -55,35 +48,26 @@ async function init() {
     accessToken,
     branch,
     baseBranch,
-    folder
+    folder,
   });
 }
 
 async function deploy(action) {
-  const repositoryPath = `https://${action.accessToken ||
-    `x-access-token:${action.gitHubToken}`}@github.com/${
-    action.gitHubRepository
-  }.git`;
-
-  await execute(`git checkout ${action.baseBranch || "master"}`);
-  await execute(`git add -f ${action.folder}`);
-  await execute(
-    `git commit -m "Deploying to ${action.branch} from ${action.baseBranch ||
-      "master"} ${process.env.GITHUB_SHA}"`
-  );
-  await execute(
-    `git push ${repositoryPath} \`git subtree split --prefix ${
-      action.folder
-    } ${action.baseBranch || "master"}\`:${action.branch} --force`
-  );
+  const repositoryPath = `https://${action.accessToken || `x-access-token:${action.gitHubToken}`}@github.com/${action.gitHubRepository}.git`
+  
+  await execute(`git checkout ${action.baseBranch || 'master'}`)
+  await execute(`git add -f ${action.folder}`)
+  await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch || 'master'} ${process.env.GITHUB_SHA}"`)
+  await execute(`git push ${repositoryPath} \`git subtree split --prefix ${action.folder} ${action.baseBranch || 'master'}\`:${action.branch} --force`)
 }
+
 
 async function run() {
   try {
     // Initializes the action.
     const action = await init();
 
-    await deploy(action);
+    await deploy(action)
   } catch (error) {
     core.setFailed(error.message);
   }
