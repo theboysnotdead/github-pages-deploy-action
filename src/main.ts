@@ -53,6 +53,7 @@ async function deploy(action) {
     await execute(`echo ${action.cname} > ${action.folder}/CNAME`)
   }
 
+  // Checks to see if the deployment branch exists, if not it needs to be created.
   const branchExists = await execute(`git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`)
 
   if (!branchExists) {
