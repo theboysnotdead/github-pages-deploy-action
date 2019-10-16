@@ -6,20 +6,17 @@ import {exec} from '@actions/exec';
 /** Executes on the command line.
  * @returns {Promise} - Returns a promise with the output once executed.
  */
-export async function execute(command: string) {
-	return exec(command, [], {
+export async function execute(command: string): Promise<any> {
+	return await exec(command, [], {
       cwd: process.env.GITHUB_WORKSPACE,
-      listeners: {
-        stdout: (data: Buffer) => {
-          return Promise.resolve(data.toString().trim());
-        },
-      },
     },
   )
 }
 
-/** Initializes the Git repository  */
-async function init() {
+/** Initializes the Git repository.
+ * @returns {Promise} - Returns a promise with all of the repository information.
+*/
+async function init(): Promise<object> {
   const {pusher, repository} = github.context.payload;
   const gitHubRepository = repository ? repository.full_name : '';
   const accessToken = core.getInput('ACCESS_TOKEN');
@@ -56,6 +53,7 @@ async function init() {
   });
 }
 
+/** Hanles the action deployment. */
 async function deploy(action) {
   const repositoryPath = `https://${action.accessToken || `x-access-token:${action.gitHubToken}`}@github.com/${action.gitHubRepository}.git`
   
