@@ -66,11 +66,6 @@ export async function deploy(action: {
     action.gitHubRepository
   }.git`;
 
-  if (action.cname) {
-    console.log(`Generating a CNAME file in the ${action.folder} directory...`);
-    await execute(`echo ${action.cname} > ${action.folder}/CNAME`);
-  }
-
   const branchExists = await Number(
     execute(`git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`)
   );
@@ -79,13 +74,22 @@ export async function deploy(action: {
     await generateBranch(action, repositoryPath);
   }
 
+  await execute(`git checkout ${action.baseBranch || 'master'}`)
+
+  if (action.cname) {
+    console.log(`Generating a CNAME file in the ${action.folder} directory...`);
+    await execute(`echo ${action.cname} > ${action.folder}/CNAME`);
+  }
+
   await execute(`git fetch origin`)
   await execute(`rm -rf tmp-deployment-folder`)
   await execute(`git worktree add --checkout tmp-deployment-folder origin/${action.branch}`)
   await execute(`cp -rf ${action.folder}/* tmp-deployment-folder`)
   await execute(`cd tmp-deployment-folder`)
   await execute(`git add --all .`)
-  await execute(`git checkout -b deploy-changes`)
+  await execute(`git checkout -b new-deploy-changes`)
   await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch || 'master'} ${process.env.GITHUB_SHA}"`)
-  await execute(`git push ${repositoryPath} deploy-changes:${action.branch}`)
+  await execute(`git push ${repositoryPath} new-deploy-changes:${action.branch}`)
+
+  console.log('finshed deploying and stuff')
 }
