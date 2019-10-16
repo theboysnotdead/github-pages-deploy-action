@@ -3,18 +3,22 @@ import * as github from '@actions/github';
 import {exec} from '@actions/exec';
 
 
+/** Executes on the command line.
+ * @returns {Promise} - Returns a promise with the output once executed.
+ */
 export async function execute(command: string) {
 	return exec(command, [], {
       cwd: process.env.GITHUB_WORKSPACE,
       listeners: {
         stdout: (data: Buffer) => {
-          return Promise.resolve();
+          return Promise.resolve(data.toString().trim());
         },
       },
     },
   )
 }
 
+/** Initializes the Git repository  */
 async function init() {
   const {pusher, repository} = github.context.payload;
   const gitHubRepository = repository ? repository.full_name : '';
