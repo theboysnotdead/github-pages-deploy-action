@@ -82,7 +82,7 @@ export async function deploy(action: {
   await execute(`git fetch origin`)
   await execute(`rm -rf tmp-deployment-folder`)
   await execute(`git worktree add --checkout tmp-deployment-folder origin/${action.branch}`)
-  await execute(`cp -rf ${action.folder}/* temp-deployment-folder`)
+  await execute(`cp -rf ${action.folder}/* tmp-deployment-folder`)
   await execute(`cd tmp-deployment-folder`)
   await execute(`git add --all .`)
   await execute(`git checkout -b deploy-changes`)
