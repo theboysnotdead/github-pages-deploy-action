@@ -45,6 +45,7 @@ async function init() {
   const gitHubRepository = repository ? repository.full_name : '';
 
   console.log('Git has been initialized.')
+  await execute(`ls`)
 
   // Returns for testing purposes.
   return Promise.resolve({
