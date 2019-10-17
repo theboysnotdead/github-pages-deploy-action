@@ -22,9 +22,7 @@ export async function init() {
     );
   }
 
-  await execute(`cd ${process.env.GITHUB_WORKSPACE}`);
-
-  console.log('ls', await execute(`ls`))
+  await execute(`cd ${folder}`);
   await execute(`git init`);
   await execute(`git config user.name ${pusher.name}`);
   await execute(`git config user.email ${pusher.email}`);
@@ -37,7 +35,6 @@ export async function init() {
     accessToken: core.getInput("ACCESS_TOKEN"),
     branch: core.getInput("BRANCH"),
     baseBranch: 'master',
-    buildScript: core.getInput("BUILD_SCRIPT"),
     folder
   };
 }
@@ -64,11 +61,7 @@ export async function deploy(action: {
   branch: any;
   baseBranch: any;
   folder: any;
-  buildScript: any;
 }) {
-
-  const temporaryDeploymentBranch = 'temp-deployment-branch';
-  const temporaryDeploymentDirectory = 'temp-deployment-directory';
 
   const repositoryPath = `https://${action.accessToken ||
     `x-access-token:${action.gitHubToken}`}@github.com/${
@@ -83,37 +76,12 @@ export async function deploy(action: {
     await generateBranch(action, repositoryPath);
   }*/
 
-
-  // TODO: New?
-
   if (action.cname) {
     console.log(`Generating a CNAME file in the ${action.folder} directory...`);
     await execute(`echo ${action.cname} > CNAME`);
   }
 
-
-  
-  await execute(`git checkout ${action.baseBranch || 'master'}`)
-
-  console.log('Building')
-  if (action.buildScript) {
-    console.log('Running build script....')
-    await execute(action.buildScript)
-  }
-
-  await execute(`git fetch origin`)
-  await rmRF(temporaryDeploymentDirectory)
-
-  console.log('Preparing for deployment....')
-  await execute(`git worktree add --checkout ${temporaryDeploymentDirectory} origin/${action.branch}`)
-  await cp(`${action.folder}/*`, temporaryDeploymentDirectory, {recursive: true, force: true})
-  await execute(`cd ${temporaryDeploymentDirectory}`)
-
-  console.log('Preparing Git Commit...')
   await execute(`git add --all .`)
-  await execute(`git checkout -b ${temporaryDeploymentBranch}`)
-  await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch || 'master'} ${process.env.GITHUB_SHA}"`)
-  
-  console.log('Executing push to GitHub')
-  await execute(`git push ${repositoryPath} ${temporaryDeploymentBranch}:${action.branch}`)
+  await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch} ${process.env.GITHUB_SHA}"`)
+  await execute(`git push --force ${repositoryPath} master:gh-pages`)
 }
