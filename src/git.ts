@@ -84,14 +84,14 @@ export async function deploy(action: {
 
   // TODO: New?
 
-  if (action.cname) {
-    console.log(`Generating a CNAME file in the ${action.folder} directory...`);
-    await execute(`echo ${action.cname} > CNAME`);
-  }
+  //if (action.cname) {
+    //console.log(`Generating a CNAME file in the ${action.folder} directory...`);
+    //await execute(`echo ${action.cname} > CNAME`);
+  //}
 
   await execute(`git add .`)
   await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch} ${process.env.GITHUB_SHA}"`)
-  await execute(`git push --force ${repositoryPath} ${action.baseBranch}:${action.branch}`)
+  await execute(`git push --force ${repositoryPath} master:${action.branch}`)
   await rmRF('.git')
 
   /*
