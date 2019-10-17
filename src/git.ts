@@ -1,105 +1,53 @@
+import { exec } from "child_process";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { execute } from "./util";
 
-export async function init() {
-  const { pusher, repository } = github.context.payload;
+const repoToken = core.getInput("ACCESS_TOKEN", { required: true });
+const siteDirectory = core.getInput("FOLDER", { required: true });
 
-  const accessToken = core.getInput("ACCESS_TOKEN");
-  const gitHubToken = core.getInput("GITHUB_TOKEN");
-  const folder = core.getInput("FOLDER", { required: true });
+const { pusher, repository } = github.context.payload;
 
-  if (!accessToken && !gitHubToken) {
+const deployBranch = "gh-pages";
+const repo = (repository && repository.name) || "";
+const gitUrl = `https://${repoToken}@github.com/${repo}.git`;
+
+function execPromise(command: string): Promise<String> {
+  return new Promise((resolve, reject) => {
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve(stdout.trim());
+    });
+  });
+}
+
+(async () => {
+  try {
+    await execPromise(`cd ${siteDirectory}`);
+    await execPromise("git init");
+    await execPromise(`git config user.name ${pusher.name}`);
+    await execPromise(`git config user.email ${pusher.email}`);
+
+    const gitStatus = await execPromise(`git status --porcelain`);
+    if (gitStatus) {
+      console.log("Nothing to deploy");
+      return;
+    }
+
+    await execPromise("git add .");
+    await execPromise('git commit -m "Deploy to GitHub Pages"');
+    await execPromise(`git push --force ${gitUrl} master:${deployBranch}`);
+
+    console.log(
+      `✅ Successfully deployed to GitHub pages. The ${siteDirectory} directory has been pushed to ${deployBranch} branch`
+    );
+  } catch (error) {
+    core.error(error);
     core.setFailed(
-      "You must provide the action with either a Personal Access Token or the GitHub Token secret in order to deploy."
+      `❌ Failed to deploy to GitHub pages: ${siteDirectory} directory failed to push to ${deployBranch} branch\n${error}`
     );
   }
-
-  if (folder.startsWith("/") || folder.startsWith("./")) {
-    core.setFailed(
-      `The deployment folder cannot be prefixed with '/' or './'. Instead reference the folder name directly.`
-    );
-  }
-
-  await execute(`cd ${process.env.GITHUB_WORKSPACE}`);
-  await execute(`git init`);
-  await execute(`git config user.name ${pusher.name}`);
-  await execute(`git config user.email ${pusher.email}`);
-
-  // Returns for testing purposes.
-  return {
-    gitHubRepository: repository ? repository.full_name : "",
-    gitHubToken: core.getInput("GITHUB_TOKEN"),
-    cname: core.getInput("CNAME"),
-    accessToken: core.getInput("ACCESS_TOKEN"),
-    branch: core.getInput("BRANCH"),
-    baseBranch: core.getInput("BASE_BRANCH"),
-    folder
-  };
-}
-
-export async function generateBranch(action, repositoryPath) {
-  try {
-    await execute(`git checkout ${action.baseBranch || "master"}`);
-    await execute(`git checkout --orphan ${action.branch}`)
-    await execute(`git rm -rf .`)
-    await execute(`touch README.md`)
-    await execute(`git add README.md`)
-    await execute(`git commit -m "Initial ${action.branch} commit"`)
-    await execute(`git push ${repositoryPath} ${action.branch}`)
-  } catch(error) {
-    core.setFailed(`There was an error creating the deployment branch.`)
-  } finally {
-    console.log('Deployment branch succesfully created!')
-  }
-}
-
-export async function deploy(action: {
-  gitHubRepository: any;
-  gitHubToken: any;
-  cname: any;
-  accessToken: any;
-  branch: any;
-  baseBranch: any;
-  folder: any;
-}) {
-  try {
-
-  } catch(error) {
-
-  } finally {
-    
-  }
-  const repositoryPath = `https://${action.accessToken ||
-    `x-access-token:${action.gitHubToken}`}@github.com/${
-    action.gitHubRepository
-  }.git`;
-
-  await execute(`git reset --hard origin/${action.branch}`)
-  await execute(`git checkout ${action.baseBranch || "master"}`);
-
-  if (action.cname) {
-    console.log(`Generating a CNAME file in the ${action.folder} directory...`);
-    await execute(`echo ${action.cname} > ${action.folder}/CNAME`);
-  }
-
-  // TODO: Checks to see if the deployment branch exists, if not it needs to be created.
-  const branchExists = await Number(execute(
-    `git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`
-  ));
-
-  if (!branchExists) {
-    await generateBranch(action, repositoryPath)
-  }
-
-  await execute(`git add -f ${action.folder}`);
-  await execute(
-    `git commit -m "Deploying to ${action.branch} from ${action.baseBranch ||
-      "master"} ${process.env.GITHUB_SHA}"`
-  );
-  await execute(
-    `git push ${repositoryPath} \`git subtree split --prefix ${
-      action.folder
-    } ${action.baseBranch || "master"}\`:${action.branch} --force`
-  );
-}
+})();
