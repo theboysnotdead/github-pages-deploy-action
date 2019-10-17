@@ -4,11 +4,12 @@ import {cp, rmRF} from "@actions/io";
 import { execute } from "./util";
 
 export async function init() {
-  const { pusher, repository } = github.context.payload;
 
   const accessToken = core.getInput("ACCESS_TOKEN");
   const gitHubToken = core.getInput("GITHUB_TOKEN");
   const folder = core.getInput("FOLDER", { required: true });
+
+  const { pusher, repository } = github.context.payload;
 
   if (!accessToken && !gitHubToken) {
     core.setFailed(
@@ -21,14 +22,6 @@ export async function init() {
       `The deployment folder cannot be prefixed with '/' or './'. Instead reference the folder name directly.`
     );
   }
-
-  await execute(`cd ${folder}`);
-  console.log('Listing directory...')
-  console.log('ls', await execute(`ls`))
-  await execute(`git init`);
-  await execute(`git config user.name ${pusher.name}`);
-  await execute(`git config user.email ${pusher.email}`);
-
   // Returns for testing purposes.
   return {
     gitHubRepository: repository ? repository.full_name : "",
@@ -70,6 +63,8 @@ export async function deploy(action: {
     action.gitHubRepository
   }.git`;
 
+
+  const { pusher, repository } = github.context.payload;
   /*const branchExists = await Number(
     execute(`git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`)
   );
@@ -77,6 +72,15 @@ export async function deploy(action: {
   if (!branchExists) {
     await generateBranch(action, repositoryPath);
   }*/
+
+
+  await execute(`cd ${action.folder}`);
+  console.log('Listing directory...')
+  console.log('ls', await execute(`ls`))
+  await execute(`git init`);
+  await execute(`git config user.name ${pusher.name}`);
+  await execute(`git config user.email ${pusher.email}`);
+
 
   if (action.cname) {
     console.log(`Generating a CNAME file in the ${action.folder} directory...`);
