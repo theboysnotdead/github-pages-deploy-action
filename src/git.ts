@@ -23,7 +23,7 @@ export async function init() {
   }
 
   //await execute(`cd ${process.env.GITHUB_WORKSPACE}`);
-  await execute(`cd ./${folder}`);
+  await execute(`cd ${folder}/`);
   await execute(`git init`);
   await execute(`git config user.name ${pusher.name}`);
   await execute(`git config user.email ${pusher.email}`);
@@ -35,13 +35,12 @@ export async function init() {
     cname: core.getInput("CNAME"),
     accessToken: core.getInput("ACCESS_TOKEN"),
     branch: core.getInput("BRANCH"),
-    baseBranch: core.getInput("BASE_BRANCH") || 'master',
-    buildScript: core.getInput("BUILD_SCRIPT"),
+    baseBranch: 'master',
     folder
   };
 }
 
-export async function generateBranch(action, repositoryPath) {
+/*export async function generateBranch(action, repositoryPath) {
   try {
     await execute(`git checkout ${action.baseBranch || "master"}`);
     await execute(`git checkout --orphan ${action.branch}`);
@@ -53,7 +52,7 @@ export async function generateBranch(action, repositoryPath) {
   } finally {
     console.log("Deployment branch successfully created!");
   }
-}
+}*/
 
 export async function deploy(action: {
   gitHubRepository: any;
@@ -63,10 +62,7 @@ export async function deploy(action: {
   branch: any;
   baseBranch: any;
   folder: any;
-  buildScript: any;
 }) {
-  const temporaryDeploymentDirectory = 'tmp-deployment-folder';
-  const temporaryDeploymentBranch = 'tmp-deployment-branch';
 
   const repositoryPath = `https://${action.accessToken ||
     `x-access-token:${action.gitHubToken}`}@github.com/${
@@ -92,7 +88,7 @@ export async function deploy(action: {
   await execute(`git add .`)
   await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch} ${process.env.GITHUB_SHA}"`)
   await execute(`git push --force ${repositoryPath} master:${action.branch}`)
-  await rmRF('.git')
+  //await rmRF('.git')
 
   /*
   await execute(`git checkout ${action.baseBranch || 'master'}`)
