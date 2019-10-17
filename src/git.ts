@@ -35,7 +35,7 @@ export async function init() {
     cname: core.getInput("CNAME"),
     accessToken: core.getInput("ACCESS_TOKEN"),
     branch: core.getInput("BRANCH"),
-    baseBranch: core.getInput("BASE_BRANCH"),
+    baseBranch: core.getInput("BASE_BRANCH") || 'master',
     buildScript: core.getInput("BUILD_SCRIPT"),
     folder
   };
@@ -90,7 +90,8 @@ export async function deploy(action: {
   }
 
   await execute(`git add .`)
-  await execute(`git push --force ${repositoryPath} ${action.baseBranch || 'master'}:${action.branch}`)
+  await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch} ${process.env.GITHUB_SHA}"`)
+  await execute(`git push --force ${repositoryPath} ${action.baseBranch}:${action.branch}`)
   await rmRF('.git')
 
   /*
