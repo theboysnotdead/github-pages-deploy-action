@@ -22,7 +22,7 @@ export async function init() {
     );
   }
 
-  await execute(`cd ${process.env.GITHUB_WORKSPACE}/${folder}`);
+  await execute(`cd ${process.env.GITHUB_WORKSPACE}`);
 
   console.log('ls', await execute(`ls`))
   await execute(`git init`);
@@ -97,7 +97,8 @@ export async function deploy(action: {
 
   console.log('Building')
   if (action.buildScript) {
-    await execute(`eval ${action.buildScript}`)
+    console.log('Running build script....')
+    await execute(action.buildScript)
   }
 
   await execute(`git fetch origin`)
