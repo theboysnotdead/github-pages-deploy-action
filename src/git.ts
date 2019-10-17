@@ -65,10 +65,7 @@ export async function deploy(action: {
   folder: any;
 }) {
 
-  const repositoryPath = `https://${action.accessToken ||
-    `x-access-token:${action.gitHubToken}`}@github.com/${
-    action.gitHubRepository
-  }.git`;
+  const repositoryPath = `https://${action.accessToken}@github.com/${action.gitHubRepository}.git`;
 
   /*const branchExists = await Number(
     execute(`git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`)
@@ -81,10 +78,10 @@ export async function deploy(action: {
 
   // TODO: New?
 
-  //if (action.cname) {
+  if (action.cname) {
     //console.log(`Generating a CNAME file in the ${action.folder} directory...`);
     //await execute(`echo ${action.cname} > CNAME`);
-  //}
+  }
 
   await execute(`git add .`)
   console.log(await execute(`git status`))
