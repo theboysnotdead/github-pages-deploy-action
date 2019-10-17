@@ -23,8 +23,6 @@ export async function init() {
     );
   }
 
-  
-  console.log(await execute(`ls`))
   await execute(`git init`);
   await execute(`git config user.name ${pusher.name}`);
   await execute(`git config user.email ${pusher.email}`);
@@ -84,7 +82,6 @@ export async function deploy(action: {
   }
 
   await execute(`git add .`)
-  console.log(await execute(`git status`))
   await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch} ${process.env.GITHUB_SHA}"`)
   await execute(`git push --force ${repositoryPath} ${action.baseBranch}:${action.branch}`)
 }
