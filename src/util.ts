@@ -7,10 +7,10 @@ export async function execute(cmd: string): Promise<String> {
       cwd: `${process.env.GITHUB_WORKSPACE}/build`,
       listeners: {
         stdout: (data: Buffer) => {
-          resolve(data.toString());
+          resolve(data.toString().trim());
         },
         stderr: (data: Buffer) => {
-          reject(data.toString());
+          reject(data.toString().trim());
         }
       }
     });
