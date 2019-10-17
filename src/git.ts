@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import * as io from "@actions/io";
+import {cp, rmRF} from "@actions/io";
 import { execute } from "./util";
 
 export async function init() {
@@ -90,14 +90,14 @@ export async function deploy(action: {
 
   await execute(`git fetch origin`)
 
-  await io.rmRF(temporaryDeploymentDirectory)
+  await rmRF(temporaryDeploymentDirectory)
 
 
   console.log('Preparing for deployment....')
 
   await execute(`git worktree add --checkout ${temporaryDeploymentDirectory} origin/${action.branch}`)
 
-  await io.cp(`${action.folder}/*`, temporaryDeploymentDirectory, {recursive: true})
+  await cp(`${action.folder}/*`, temporaryDeploymentDirectory, {recursive: true, force: true})
   //await execute(`cp -rf ${action.folder}/* ${temporaryDeploymentDirectory}`)
   await execute(`cd ${temporaryDeploymentDirectory}`)
 
