@@ -75,6 +75,7 @@ export async function deploy(action: {
     action.gitHubRepository
   }.git`;
 
+  await execute(`git reset --hard origin/${action.branch}`)
   await execute(`git checkout ${action.baseBranch || "master"}`);
 
   if (action.cname) {
