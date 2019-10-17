@@ -23,6 +23,8 @@ export async function init() {
   }
 
   await execute(`cd ${folder}`);
+  console.log('Listing directory...')
+  console.log('ls', await execute(`ls`))
   await execute(`git init`);
   await execute(`git config user.name ${pusher.name}`);
   await execute(`git config user.email ${pusher.email}`);
@@ -81,7 +83,7 @@ export async function deploy(action: {
     await execute(`echo ${action.cname} > CNAME`);
   }
 
-  await execute(`git add --all .`)
+  await execute(`git add .`)
   await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch} ${process.env.GITHUB_SHA}"`)
   await execute(`git push origin --force ${repositoryPath} master:gh-pages`)
 }
