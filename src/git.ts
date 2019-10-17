@@ -37,6 +37,7 @@ export async function init() {
     accessToken: core.getInput("ACCESS_TOKEN"),
     branch: core.getInput("BRANCH"),
     baseBranch: 'master',
+    buildScript: core.getInput("BUILD_SCRIPT"),
     folder
   };
 }
@@ -63,9 +64,16 @@ export async function deploy(action: {
   branch: any;
   baseBranch: any;
   folder: any;
+  buildScript: any;
 }) {
 
-  const repositoryPath = `https://${action.accessToken}@github.com/${action.gitHubRepository}.git`;
+  const temporaryDeploymentBranch = 'temp-deployment-branch';
+  const temporaryDeploymentDirectory = 'temp-deployment-directory';
+
+  const repositoryPath = `https://${action.accessToken ||
+    `x-access-token:${action.gitHubToken}`}@github.com/${
+    action.gitHubRepository
+  }.git`;
 
   /*const branchExists = await Number(
     execute(`git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`)
@@ -79,33 +87,25 @@ export async function deploy(action: {
   // TODO: New?
 
   if (action.cname) {
-    //console.log(`Generating a CNAME file in the ${action.folder} directory...`);
-    //await execute(`echo ${action.cname} > CNAME`);
+    console.log(`Generating a CNAME file in the ${action.folder} directory...`);
+    await execute(`echo ${action.cname} > CNAME`);
   }
 
-  await execute(`git add .`)
-  console.log(await execute(`git status`))
-  await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch} ${process.env.GITHUB_SHA}"`)
-  await execute(`git push --force ${repositoryPath} master:${action.branch}`)
-  //await rmRF('.git')
 
-  /*
+  
   await execute(`git checkout ${action.baseBranch || 'master'}`)
 
   console.log('Building')
-
-  await execute(`eval ${action.buildScript}`)
+  if (action.buildScript) {
+    await execute(`eval ${action.buildScript}`)
+  }
 
   await execute(`git fetch origin`)
-
   await rmRF(temporaryDeploymentDirectory)
 
   console.log('Preparing for deployment....')
-
   await execute(`git worktree add --checkout ${temporaryDeploymentDirectory} origin/${action.branch}`)
-
   await cp(`${action.folder}/*`, temporaryDeploymentDirectory, {recursive: true, force: true})
-  //await execute(`cp -rf ${action.folder}/* ${temporaryDeploymentDirectory}`)
   await execute(`cd ${temporaryDeploymentDirectory}`)
 
   console.log('Preparing Git Commit...')
@@ -115,5 +115,4 @@ export async function deploy(action: {
   
   console.log('Executing push to GitHub')
   await execute(`git push ${repositoryPath} ${temporaryDeploymentBranch}:${action.branch}`)
-*/
 }
