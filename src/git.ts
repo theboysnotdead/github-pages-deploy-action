@@ -83,7 +83,8 @@ export async function deploy(action: {
     await execute(`echo ${action.cname} > CNAME`);
   }
 
-  await execute(`git add --all .`)
+  await execute(`git add .`)
+  console.log(await execute(`git status`))
   await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch} ${process.env.GITHUB_SHA}"`)
-  await execute(`git push origin --force ${repositoryPath} master:gh-pages`)
+  await execute(`git push --force ${repositoryPath} ${action.baseBranch}:${action.branch}`)
 }
