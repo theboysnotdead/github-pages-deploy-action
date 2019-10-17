@@ -35,6 +35,7 @@ export async function init() {
     accessToken: core.getInput("ACCESS_TOKEN"),
     branch: core.getInput("BRANCH"),
     baseBranch: core.getInput("BASE_BRANCH"),
+    buildScript: core.getInput("BUILD_SCRIPT"),
     folder
   };
 }
@@ -61,6 +62,7 @@ export async function deploy(action: {
   branch: any;
   baseBranch: any;
   folder: any;
+  buildScript: any;
 }) {
   const temporaryDeploymentDirectory = 'tmp-deployment-folder';
   const temporaryDeploymentBranch = 'tmp-deployment-branch';
@@ -83,6 +85,10 @@ export async function deploy(action: {
 
   await execute(`git checkout ${action.baseBranch || 'master'}`)
 
+  console.log('Building')
+
+  await execute(`eval ${action.buildScript}`)
+
   if (action.cname) {
     console.log(`Generating a CNAME file in the ${action.folder} directory...`);
     await execute(`echo ${action.cname} > ${action.folder}/CNAME`);
@@ -92,12 +98,11 @@ export async function deploy(action: {
 
   await rmRF(temporaryDeploymentDirectory)
 
-
   console.log('Preparing for deployment....')
 
   await execute(`git worktree add --checkout ${temporaryDeploymentDirectory} origin/${action.branch}`)
 
-  await cp(`${action.folder}`, temporaryDeploymentDirectory, {recursive: true})
+  await cp(`${action.folder}/*`, temporaryDeploymentDirectory, {recursive: true, force: true})
   //await execute(`cp -rf ${action.folder}/* ${temporaryDeploymentDirectory}`)
   await execute(`cd ${temporaryDeploymentDirectory}`)
 
