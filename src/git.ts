@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import * as io from "@actions/io";
 import { execute } from "./util";
 
 export async function init() {
@@ -69,13 +70,16 @@ export async function deploy(action: {
     action.gitHubRepository
   }.git`;
 
-  const branchExists = await Number(
+  /*const branchExists = await Number(
     execute(`git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`)
   );
 
   if (!branchExists) {
     await generateBranch(action, repositoryPath);
-  }
+  }*/
+
+
+  // TODO: New?
 
   await execute(`git checkout ${action.baseBranch || 'master'}`)
 
@@ -85,10 +89,16 @@ export async function deploy(action: {
   }
 
   await execute(`git fetch origin`)
+
+  await io.rmRF(temporaryDeploymentDirectory)
+
+
   console.log('Preparing for deployment....')
-  await execute(`rm -rf ${temporaryDeploymentDirectory}`)
+
   await execute(`git worktree add --checkout ${temporaryDeploymentDirectory} origin/${action.branch}`)
-  await execute(`cp -rf ${action.folder}/* ${temporaryDeploymentDirectory}`)
+
+  await io.cp(`${action.folder}/*`, temporaryDeploymentDirectory, {recursive: true})
+  //await execute(`cp -rf ${action.folder}/* ${temporaryDeploymentDirectory}`)
   await execute(`cd ${temporaryDeploymentDirectory}`)
 
   console.log('Preparing Git Commit...')
