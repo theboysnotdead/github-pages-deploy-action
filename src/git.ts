@@ -23,6 +23,7 @@ export async function init() {
   }
 
   await execute(`cd ${process.env.GITHUB_WORKSPACE}`);
+  await execute(`cd ${folder}`);
   await execute(`git init`);
   await execute(`git config user.name ${pusher.name}`);
   await execute(`git config user.email ${pusher.email}`);
@@ -83,16 +84,21 @@ export async function deploy(action: {
 
   // TODO: New?
 
+  if (action.cname) {
+    console.log(`Generating a CNAME file in the ${action.folder} directory...`);
+    await execute(`echo ${action.cname} > CNAME`);
+  }
+
+  await execute(`git add .`)
+  await execute(`git push --force ${repositoryPath} ${action.baseBranch}:${action.branch}`)
+  await rmRF('.git')
+
+  /*
   await execute(`git checkout ${action.baseBranch || 'master'}`)
 
   console.log('Building')
 
   await execute(`eval ${action.buildScript}`)
-
-  if (action.cname) {
-    console.log(`Generating a CNAME file in the ${action.folder} directory...`);
-    await execute(`echo ${action.cname} > ${action.folder}/CNAME`);
-  }
 
   await execute(`git fetch origin`)
 
@@ -113,5 +119,5 @@ export async function deploy(action: {
   
   console.log('Executing push to GitHub')
   await execute(`git push ${repositoryPath} ${temporaryDeploymentBranch}:${action.branch}`)
-
+*/
 }
