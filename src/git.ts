@@ -34,8 +34,7 @@ export async function init() {
     accessToken: core.getInput("ACCESS_TOKEN"),
     branch: core.getInput("BRANCH"),
     baseBranch: core.getInput("BASE_BRANCH"),
-    
-  };
+  }
 }
 
 export async function generateBranch(action, repositoryPath) {
@@ -49,6 +48,7 @@ export async function generateBranch(action, repositoryPath) {
     core.setFailed(`There was an error creating the deployment branch.`);
   } finally {
     console.log("Deployment branch successfully created!");
+    return
   }
 }
 
@@ -68,14 +68,14 @@ export async function deploy(action: {
     action.gitHubRepository
   }.git`;
 
-  const branchExists = await Number(
-    execute(`git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`, workspace)
-  );
+  const branchExists = Number(await execute(`git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`, workspace));
 
   if (!branchExists) {
+    console.log('Deployment branch does not exist. Creating....')
     await generateBranch(action, repositoryPath);
   }
 
+  console.log('Checking out...')
   await execute(`git checkout ${action.baseBranch || 'master'}`, workspace)
 
   if (action.cname) {
@@ -83,9 +83,8 @@ export async function deploy(action: {
     await execute(`echo ${action.cname} > CNAME`, build);
   }
 
-  await execute(`git fetch origin`, workspace)
-
   console.log('Preparing for deployment....')
+  await execute(`git fetch origin`, workspace)
   await rmRF(temporaryDeploymentDirectory)
   await execute(`rm -rf ${temporaryDeploymentDirectory}`, workspace)
   await execute(`git worktree add --checkout ${temporaryDeploymentDirectory} origin/${action.branch}`, workspace)
