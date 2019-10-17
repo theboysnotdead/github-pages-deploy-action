@@ -97,7 +97,7 @@ export async function deploy(action: {
 
   await execute(`git worktree add --checkout ${temporaryDeploymentDirectory} origin/${action.branch}`)
 
-  await cp(`${action.folder}/*`, temporaryDeploymentDirectory, {recursive: true, force: true})
+  await cp(`${action.folder}`, temporaryDeploymentDirectory, {recursive: true})
   //await execute(`cp -rf ${action.folder}/* ${temporaryDeploymentDirectory}`)
   await execute(`cd ${temporaryDeploymentDirectory}`)
 
