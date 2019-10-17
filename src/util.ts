@@ -1,10 +1,15 @@
-import { exec } from "@actions/exec";
+import { exec } from "child_process";
 import { rejects } from "assert";
 
 export async function execute(cmd: string): Promise<String> {
   return new Promise((resolve, reject) => {
-    exec(cmd, [], {
-      cwd: "./public"
+    exec(cmd, {cwd: '/build'}, (error, stdout) => {
+      if (error) {
+        reject(error)
+
+        console.log(error)
+      }
+      resolve(stdout.trim());
     });
   });
 }
