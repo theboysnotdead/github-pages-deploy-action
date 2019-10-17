@@ -1,15 +1,13 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import {cp, rmRF} from "@actions/io";
 import { execute } from "./util";
 
 export async function init() {
+  const { pusher, repository } = github.context.payload;
 
   const accessToken = core.getInput("ACCESS_TOKEN");
   const gitHubToken = core.getInput("GITHUB_TOKEN");
   const folder = core.getInput("FOLDER", { required: true });
-
-  const { pusher, repository } = github.context.payload;
 
   if (!accessToken && !gitHubToken) {
     core.setFailed(
@@ -22,6 +20,12 @@ export async function init() {
       `The deployment folder cannot be prefixed with '/' or './'. Instead reference the folder name directly.`
     );
   }
+
+  await execute(`cd ${process.env.GITHUB_WORKSPACE}`);
+  await execute(`git init`);
+  await execute(`git config user.name ${pusher.name}`);
+  await execute(`git config user.email ${pusher.email}`);
+
   // Returns for testing purposes.
   return {
     gitHubRepository: repository ? repository.full_name : "",
@@ -29,24 +33,26 @@ export async function init() {
     cname: core.getInput("CNAME"),
     accessToken: core.getInput("ACCESS_TOKEN"),
     branch: core.getInput("BRANCH"),
-    baseBranch: 'master',
+    baseBranch: core.getInput("BASE_BRANCH"),
     folder
   };
 }
 
-/*export async function generateBranch(action, repositoryPath) {
+export async function generateBranch(action, repositoryPath) {
   try {
     await execute(`git checkout ${action.baseBranch || "master"}`);
-    await execute(`git checkout --orphan ${action.branch}`);
-    await execute(`git reset --hard`)
-    await execute(`git commit --allow-empty -m "Initial ${action.branch} branch creation"`)
+    await execute(`git checkout --orphan ${action.branch}`)
+    await execute(`git rm -rf .`)
+    await execute(`touch README.md`)
+    await execute(`git add README.md`)
+    await execute(`git commit -m "Initial ${action.branch} commit"`)
     await execute(`git push ${repositoryPath} ${action.branch}`)
-  } catch (error) {
-    core.setFailed(`There was an error creating the deployment branch.`);
+  } catch(error) {
+    core.setFailed(`There was an error creating the deployment branch.`)
   } finally {
-    console.log("Deployment branch successfully created!");
+    console.log('Deployment branch succesfully created!')
   }
-}*/
+}
 
 export async function deploy(action: {
   gitHubRepository: any;
@@ -57,37 +63,42 @@ export async function deploy(action: {
   baseBranch: any;
   folder: any;
 }) {
+  try {
 
+  } catch(error) {
+
+  } finally {
+    
+  }
   const repositoryPath = `https://${action.accessToken ||
     `x-access-token:${action.gitHubToken}`}@github.com/${
     action.gitHubRepository
   }.git`;
 
-
-  const { pusher, repository } = github.context.payload;
-  /*const branchExists = await Number(
-    execute(`git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`)
-  );
-
-  if (!branchExists) {
-    await generateBranch(action, repositoryPath);
-  }*/
-
-
-  await execute(`cd ${action.folder}`);
-  console.log('Listing directory...')
-  console.log('ls', await execute(`ls`))
-  await execute(`git init`);
-  await execute(`git config user.name ${pusher.name}`);
-  await execute(`git config user.email ${pusher.email}`);
-
+  await execute(`git checkout ${action.baseBranch || "master"}`);
 
   if (action.cname) {
     console.log(`Generating a CNAME file in the ${action.folder} directory...`);
-    await execute(`echo ${action.cname} > CNAME`);
+    await execute(`echo ${action.cname} > ${action.folder}/CNAME`);
   }
 
-  await execute(`git add .`)
-  await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch} ${process.env.GITHUB_SHA}"`)
-  await execute(`git push origin --force ${repositoryPath} master:gh-pages`)
+  // TODO: Checks to see if the deployment branch exists, if not it needs to be created.
+  const branchExists = await Number(execute(
+    `git ls-remote --heads ${repositoryPath} ${action.branch} | wc -l`
+  ));
+
+  if (!branchExists) {
+    await generateBranch(action, repositoryPath)
+  }
+
+  await execute(`git add -f ${action.folder}`);
+  await execute(
+    `git commit -m "Deploying to ${action.branch} from ${action.baseBranch ||
+      "master"} ${process.env.GITHUB_SHA}"`
+  );
+  await execute(
+    `git push ${repositoryPath} \`git subtree split --prefix ${
+      action.folder
+    } ${action.baseBranch || "master"}\`:${action.branch} --force`
+  );
 }
