@@ -22,8 +22,10 @@ export async function init() {
     );
   }
 
-  //await execute(`cd ${process.env.GITHUB_WORKSPACE}`);
+  await execute(`cd ${process.env.GITHUB_WORKSPACE}`);
   await execute(`cd ${folder}/`);
+
+  console.log(await execute(`ls`))
   await execute(`git init`);
   await execute(`git config user.name ${pusher.name}`);
   await execute(`git config user.email ${pusher.email}`);
@@ -86,6 +88,7 @@ export async function deploy(action: {
   //}
 
   await execute(`git add .`)
+  console.log(await execute(`git status`))
   await execute(`git commit -m "Deploying to ${action.branch} from ${action.baseBranch} ${process.env.GITHUB_SHA}"`)
   await execute(`git push --force ${repositoryPath} master:${action.branch}`)
   //await rmRF('.git')
