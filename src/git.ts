@@ -22,7 +22,7 @@ export async function init() {
     );
   }
 
-  await execute(`cd ${process.env.GITHUB_WORKSPACE}`);
+  //await execute(`cd ${process.env.GITHUB_WORKSPACE}`);
   await execute(`cd ${folder}`);
   await execute(`git init`);
   await execute(`git config user.name ${pusher.name}`);
@@ -90,7 +90,7 @@ export async function deploy(action: {
   }
 
   await execute(`git add .`)
-  await execute(`git push --force ${repositoryPath} ${action.baseBranch}:${action.branch}`)
+  await execute(`git push --force ${repositoryPath} ${action.baseBranch || 'master'}:${action.branch}`)
   await rmRF('.git')
 
   /*
