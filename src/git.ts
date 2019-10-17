@@ -23,6 +23,7 @@ export async function init() {
       );
     }
   
+    console.log('Starting repo init...')
     await execute(`git init`, workspace);
     await execute(`git config user.name ${pusher.name}`, workspace);
     await execute(`git config user.email ${pusher.email}`, workspace);
