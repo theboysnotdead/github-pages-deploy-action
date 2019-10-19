@@ -5,7 +5,7 @@ async function run() {
   try {
     // Initializes the action.
     const action = await init();
-    await deploy(action);
+    await deploy();
   } catch (error) {
     core.setFailed(error.message);
   } finally {
