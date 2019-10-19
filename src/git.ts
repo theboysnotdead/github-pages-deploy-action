@@ -4,6 +4,18 @@ import {cp, rmRF} from "@actions/io"
 import { execute } from "./util";
 import { workspace, build } from './constants';
 
+const { pusher, repository } = github.context.payload;
+  
+    // Returns for testing purposes.
+    const action = {
+      gitHubRepository: repository ? repository.full_name : "",
+      gitHubToken: core.getInput("GITHUB_TOKEN"),
+      cname: core.getInput("CNAME"),
+      accessToken: core.getInput("ACCESS_TOKEN"),
+      branch: core.getInput("BRANCH"),
+      baseBranch: core.getInput("BASE_BRANCH"),
+    }
+
 export async function init() {
   try {
     const { pusher, repository } = github.context.payload;
@@ -39,8 +51,6 @@ export async function init() {
     }
   } catch (error) {
     core.setFailed(`There was an error initializing the repository: ${error}`)
-  } finally {
-    return console.log('Initialization complete...')
   }
 }
 
@@ -55,11 +65,10 @@ export async function generateBranch(action, repositoryPath) {
     core.setFailed(`There was an error creating the deployment branch: ${error}`);
   } finally {
     console.log("Deployment branch successfully created!");
-    return
   }
 }
 
-export async function deploy(action) {
+export async function deploy() {
   try {
     const temporaryDeploymentDirectory = 'tmp-deployment-folder';
     const temporaryDeploymentBranch = 'tmp-deployment-branch';
@@ -101,6 +110,6 @@ export async function deploy(action) {
   } catch(error) {
     core.setFailed(`There was an error in the deployment: ${error}`)
   } finally {
-    return console.log('Deployment succeeded')
+    console.log('Deployment succeeded')
   }
 }
