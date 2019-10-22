@@ -29,6 +29,7 @@ esac
 apt-get update && \
 apt-get install -y git && \
 apt-get install -y jq && \
+apt-get install -y curl && \
 
 # Gets the commit email/name if it exists in the push event payload.
 COMMIT_EMAIL=`jq '.pusher.email' ${GITHUB_EVENT_PATH}`
@@ -72,6 +73,9 @@ fi
 
 # Checks out the base branch to begin the deploy process.
 git checkout "${BASE_BRANCH:-master}" && \
+
+fecthedData=$(curl -i -H "Accept: application/json" "https://jsonplaceholder.typicode.com/posts" | tr -d '\r')
+echo "$fecthedData"
 
 # Builds the project if a build script is provided.
 echo "Running build scripts... $BUILD_SCRIPT" && \
