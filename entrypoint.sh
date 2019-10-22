@@ -74,9 +74,6 @@ fi
 # Checks out the base branch to begin the deploy process.
 git checkout "${BASE_BRANCH:-master}" && \
 
-fecthedData=$(curl -i -H "Accept: application/json" "https://jsonplaceholder.typicode.com/posts" | tr -d '\r')
-echo "$fecthedData"
-
 # Builds the project if a build script is provided.
 echo "Running build scripts... $BUILD_SCRIPT" && \
 eval "$BUILD_SCRIPT" && \
